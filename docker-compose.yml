@@ -1,0 +1,105 @@
+version: '3.9'
+
+networks:
+  api:
+    driver: bridge
+
+volumes:
+  api-redis:
+  api-mysql:
+    driver: local
+
+services:
+  nginx:
+    container_name: nginx
+    image: nginx:alpine
+    depends_on:
+      - php
+    restart: unless-stopped
+    ports:
+      - ${NGINX_PORT:-4343}:${NGINX_PORT:-4343}
+    volumes:
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+      - ./:/var/www/app
+    networks:
+      - api
+
+  php:
+    container_name: app
+    build:
+      context: .
+      dockerfile: ./docker/app/app.dockerfile
+      args:
+        user: ${DEFAULT_USER:-admin}
+        group: ${DEFAULT_GROUP:-admin}
+        gid: ${DEFAULT_GROUP_ID:-1000}
+        uid: ${DEFAULT_USER_ID:-1000}
+    depends_on:
+      - mysql
+      - mysql-tests
+      - redis
+    volumes:
+      - ./:/var/www/app
+    restart: unless-stopped
+    networks:
+      - api
+
+  horizon:
+    container_name: horizon
+    depends_on:
+      - php
+    build:
+      context: .
+      dockerfile: ./docker/app/horizon.dockerfile
+      args:
+        user: ${DEFAULT_USER:-admin}
+        group: ${DEFAULT_GROUP:-admin}
+        gid: ${DEFAULT_GROUP_ID:-1000}
+        uid: ${DEFAULT_USER_ID:-1000}
+    volumes:
+      - ./:/var/www/app
+    ports:
+      - ${MAILPIT_PORT:-1025}:${MAILPIT_PORT:-1025}
+    restart: unless-stopped
+    networks:
+      - api
+
+  redis:
+    image: redis:alpine
+    command: [ "redis-server", "--maxmemory 1gb", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-secret}" ]
+    container_name: redis
+    ports:
+      - ${REDIS_PORT:-6379}:6379
+    volumes:
+      - api-redis:/data:delegated
+    restart: unless-stopped
+    networks:
+      - api
+
+  mysql:
+    image: mysql:8.0.32
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-excdev}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_USER: ${DB_USERNAME:-admin}
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    volumes:
+      - api-mysql:/var/lib/mysql:delegated
+    ports:
+      - 3306:${DB_PORT:-3306}
+    networks:
+      - api
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    ports:
+      - "8081:8080"
+    depends_on:
+      - mysql
+    restart: unless-stopped
+    networks:
+      - api
