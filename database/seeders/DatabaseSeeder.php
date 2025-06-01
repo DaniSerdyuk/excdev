@@ -13,6 +13,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->count(10)->create();
+        if (!User::query()->count()) {
+            User::factory()->count(10)->create();
+        }
     }
 }
