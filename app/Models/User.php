@@ -42,6 +42,11 @@ class User extends Authenticatable
         'password',
     ];
 
+    /** @var string[] $appends */
+    protected $appends = [
+        'full_name',
+    ];
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -78,7 +83,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(Transaction::class);
     }
-
 
     /**
      * @return Attribute

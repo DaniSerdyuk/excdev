@@ -37,14 +37,15 @@ class InteractiveTransactionCommand extends Command
         $user = $this->askValidEmail();
         $amount = $this->askValidAmount();
         $type = $this->askValidType();
-        $description = $this->ask('Description');
+        $description = $this->askValidDescription();
 
         if ($isSync) {
             ProcessTransactionJob::dispatchSync(
                 userId: $user->id,
                 amount: $amount,
                 type: $type,
-                description: $description
+                description: $description,
+                date: now()
             );
 
             $this->info(sprintf(
@@ -61,7 +62,8 @@ class InteractiveTransactionCommand extends Command
             userId: $user->id,
             amount: $amount,
             type: $type,
-            description: $description
+            description: $description,
+            date: now()
         );
 
         $this->info(sprintf(
@@ -96,6 +98,24 @@ class InteractiveTransactionCommand extends Command
             }
 
             return $user;
+        } while (true);
+    }
+
+    /**
+     * @return null|string
+     */
+    protected function askValidDescription(): ?string
+    {
+        do {
+            $description = $this->ask('Description (max length 255)');
+
+            if (strlen($description) >= 255) {
+                $this->error('Max length 255.');
+
+                continue;
+            }
+
+            return $description;
         } while (true);
     }
 

@@ -16,7 +16,7 @@ class DashboardService
     public function getUserWithBalance(User $user): User
     {
         return $user->load([
-            'balance',
+            'balance:id,amount,user_id',
             'transactions' => fn($q) => $q->latest('created_at')->limit(5),
         ]);
     }

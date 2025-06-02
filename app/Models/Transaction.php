@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int       $amount
  * @property string    $type
  * @property string    $description
- * @property \DateTime $updated_at
+ * @property \DateTime $created_at
  *
  * @property-read User $balance
  */
@@ -29,6 +29,7 @@ class Transaction extends Model
         'amount',
         'type',
         'description',
+        'created_at',
     ];
 
     /**
@@ -45,7 +46,7 @@ class Transaction extends Model
     protected function createdAt(): Attribute
     {
         return Attribute::get(
-            fn($value) => Carbon::parse($value)->toFormattedDayDateString()
+            fn($value) => Carbon::parse($value)->toDayDateTimeString()
         );
     }
 }

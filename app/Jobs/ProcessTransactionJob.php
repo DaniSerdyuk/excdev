@@ -19,6 +19,7 @@ class ProcessTransactionJob implements ShouldQueue
         protected int $userId,
         protected int $amount,
         protected string $type,
+        protected \DateTime $date,
         protected ?string $description = null,
     ) {}
 
@@ -38,7 +39,7 @@ class ProcessTransactionJob implements ShouldQueue
                 'amount' => $this->amount,
                 'type' => $this->type,
                 'description' => $this->description,
-                'created_at' => now(),
+                'created_at' => $this->date,
             ]);
 
             $balance->update([

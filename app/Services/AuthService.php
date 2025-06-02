@@ -24,7 +24,7 @@ class AuthService
         }
 
         if (!Hash::check($credentials['password'], $user->password)) {
-            throw new AuthenticationException('Invalid credentials');
+            throw new AuthenticationException('Incorrect password');
         }
 
         return [
